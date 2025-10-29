@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const jwt = require('jsonwebtoken');
 
+
 // Middleware to verify token
 function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
