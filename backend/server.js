@@ -7,7 +7,20 @@ const db = require('./db');
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 
-app.use(cors());
+
+const cors = require('cors');
+
+const cors = require('cors');
+
+app.use(cors({
+  origin: [
+    'https://linkedin-frontend-bnkz.onrender.com',
+    'http://localhost:5500',                      
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
