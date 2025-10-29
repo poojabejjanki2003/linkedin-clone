@@ -7,9 +7,7 @@ const pool = new Pool({
   database: 'linkedin_db_wjjg',
   password: 'wR5EmGk78JyfGnJtmSoixdBeDazpMvBP',
   port: 5432,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 pool.connect()
