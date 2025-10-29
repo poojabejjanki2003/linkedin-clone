@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS linkedin_clone;
-USE linkedin_clone;
-
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100),
