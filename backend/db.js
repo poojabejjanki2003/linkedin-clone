@@ -1,14 +1,21 @@
-const mysql = require('mysql2');
+const mysql = require("mysql2");
+const dotenv = require("dotenv");
+dotenv.config();
+
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',       // 👈 your MySQL username
-  password: '',       // 👈 your MySQL password
-  database: 'linkedin_clone'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306
 });
 
-connection.connect(err => {
-  if (err) throw err;
-  console.log('✅ MySQL Connected...');
+connection.connect((err) => {
+  if (err) {
+    console.error("❌ Database connection failed:", err);
+    return;
+  }
+  console.log("✅ Connected to MySQL Database!");
 });
 
 module.exports = connection;
