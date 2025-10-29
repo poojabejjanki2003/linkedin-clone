@@ -1,4 +1,5 @@
-const API = 'http://localhost:5000/api';
+const API = 'https://linkedin-backend-r9ng.onrender.com/api';
+
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 
