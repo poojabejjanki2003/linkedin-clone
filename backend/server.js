@@ -13,5 +13,10 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 
+app.get('/', (req, res) => {
+  res.send('✅ LinkedIn Clone Backend is running successfully!');
+});
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
