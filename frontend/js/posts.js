@@ -1,89 +1,62 @@
-const API = "https://linkedin-backend-r9nq.onrender.com/api";
+const API = 'https://linkedin-backend-r9nq.onrender.com/api';
+const token = localStorage.getItem('token');
+const user = JSON.parse(localStorage.getItem('loggedUser') || '{}');
 
-// ✅ Check Login
-const user = JSON.parse(localStorage.getItem("loggedUser"));
-if (!user) {
+// 🧠 Check login
+if (!token || !user?.id) {
   alert("Please login first!");
-  window.location.href = "login.html";
+  window.location.href = './login.html';
 }
 
-// ✅ Display username
-document.getElementById("user-info").innerText = user.name || "User";
+// ✅ Show user info
+document.getElementById('user-info').innerText = user.username || 'Guest';
 
-// ✅ Logout
-document.getElementById("logout-btn").addEventListener("click", () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("loggedUser");
-  window.location.href = "login.html";
-});
+// ✅ Load feed
+async function loadFeed() {
+  try {
+    const res = await fetch(`${API}/posts`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error(`Failed to load feed: ${res.status}`);
 
-// ✅ Handle Post Creation
-const postForm = document.getElementById("postForm");
-const feed = document.getElementById("feed");
+    const posts = await res.json();
+    const feed = document.getElementById('feed');
 
-postForm.addEventListener("submit", async (e) => {
+    feed.innerHTML = posts.map(p => `
+      <div class="post">
+        <h4>${p.name}</h4>
+        <p>${p.content}</p>
+        <small>${new Date(p.created_at).toLocaleString()}</small>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error("Error loading feed:", err);
+  }
+}
+
+// ✅ Handle new post
+document.getElementById('postForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const content = document.getElementById("content").value.trim();
-
-  if (!content) return alert("Post content cannot be empty!");
-
-  const token = localStorage.getItem("token");
+  const content = document.getElementById('content').value.trim();
+  if (!content) return alert("Please enter something to post!");
 
   try {
     const res = await fetch(`${API}/posts`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        content,
-        author: user.name,
-        email: user.email,
-      }),
+      body: JSON.stringify({ content })
     });
 
-    const data = await res.json();
-
-    if (res.ok) {
-      document.getElementById("content").value = ""; // clear textarea
-      addPostToFeed(data.post || { content, author: user.name });
-    } else {
-      alert(data.error || "Failed to post");
-    }
-  } catch (error) {
-    console.error("Error creating post:", error);
+    if (!res.ok) throw new Error(`Failed to post: ${res.status}`);
+    document.getElementById('content').value = '';
+    await loadFeed();
+  } catch (err) {
+    console.error("Error creating post:", err);
   }
 });
 
-// ✅ Load existing posts from backend
-async function loadPosts() {
-  try {
-    const res = await fetch(`${API}/posts`);
-    const data = await res.json();
-
-    if (res.ok) {
-      feed.innerHTML = "";
-      data.forEach((p) => addPostToFeed(p));
-    } else {
-      feed.innerHTML = "<p>Failed to load posts.</p>";
-    }
-  } catch (err) {
-    console.error("Error fetching posts:", err);
-    feed.innerHTML = "<p>Error loading posts.</p>";
-  }
-}
-
-// ✅ Display post on the page
-function addPostToFeed(post) {
-  const div = document.createElement("div");
-  div.classList.add("post");
-  div.innerHTML = `
-    <div class="post-author"><i class="bi bi-person-circle"></i> ${post.author || "Anonymous"}</div>
-    <div class="post-content">${post.content}</div>
-  `;
-  feed.prepend(div); // newest post first
-}
-
-// Load posts initially
-loadPosts();
+// ✅ Load feed when page opens
+loadFeed();
