@@ -1,7 +1,7 @@
 const API = 'https://linkedin-backend-r9nq.onrender.com/api';
 
 
-// SIGNUP
+// ---------------- SIGNUP ----------------
 const signupForm = document.getElementById('signupForm');
 if (signupForm) {
   signupForm.addEventListener('submit', async e => {
@@ -26,7 +26,7 @@ if (signupForm) {
   });
 }
 
-// LOGIN
+// ---------------- LOGIN ----------------
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
   loginForm.addEventListener('submit', async e => {
@@ -42,8 +42,14 @@ if (loginForm) {
 
     const data = await res.json();
     if (res.ok) {
+      // ✅ Store token & user info
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('loggedUser', JSON.stringify({
+        name: data.user.name || "User",
+        email: data.user.email
+      }));
+
+      // ✅ Redirect to main page
       window.location.href = 'index.html';
     } else {
       alert(data.error || 'Invalid credentials');
