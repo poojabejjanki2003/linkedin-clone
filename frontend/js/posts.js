@@ -1,13 +1,9 @@
 const API = 'https://linkedin-backend-r9nq.onrender.com/api';
 
-// 🔍 Debug log (you can remove later)
-console.log("Token:", localStorage.getItem('token'));
-console.log("User:", localStorage.getItem('user'));
-
 const token = localStorage.getItem('token');
 const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-// 🧠 Strict login validation
+// ✅ Strict login validation
 if (!token || token === "null" || token === "undefined" || !user?.name) {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
@@ -15,10 +11,10 @@ if (!token || token === "null" || token === "undefined" || !user?.name) {
   window.location.href = 'login.html';
 }
 
-// 🧾 Show user info
+// 🧠 Show user info on navbar
 document.getElementById('user-info').innerText = user?.name || 'Guest';
 
-// 📰 Load feed
+// ✅ Load feed
 async function loadFeed() {
   try {
     const res = await fetch(`${API}/posts`, {
@@ -44,15 +40,11 @@ async function loadFeed() {
     console.error("Error loading feed:", err);
   }
 }
-loadFeed();
 
-// 📝 Handle post submission
-const postForm = document.getElementById('postForm');
-postForm.addEventListener('submit', async e => {
-  e.preventDefault();
-  const content = document.getElementById('content').value.trim();
-
-  if (!content) return alert('Post content cannot be empty!');
+// ✅ Handle new post submission
+document.getElementById('post-btn')?.addEventListener('click', async () => {
+  const content = document.getElementById('post-content').value.trim();
+  if (!content) return alert("Please enter something to post!");
 
   try {
     const res = await fetch(`${API}/posts`, {
@@ -64,18 +56,13 @@ postForm.addEventListener('submit', async e => {
       body: JSON.stringify({ content })
     });
 
-    if (res.ok) {
-      document.getElementById('content').value = '';
-      loadFeed();
-    } else if (res.status === 401 || res.status === 403) {
-      alert('Session expired. Please log in again.');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = 'login.html';
-    } else {
-      alert('Failed to post.');
-    }
+    if (!res.ok) throw new Error(`Failed to post: ${res.status}`);
+    document.getElementById('post-content').value = '';
+    await loadFeed(); // reload feed after posting
   } catch (err) {
-    console.error("Error posting content:", err);
+    console.error("Error creating post:", err);
   }
 });
+
+// ✅ Load feed on page load
+loadFeed();
