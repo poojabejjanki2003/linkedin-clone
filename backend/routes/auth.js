@@ -1,57 +1,22 @@
-const express = require('express');
+// routes/auth.js
+const express = require("express");
 const router = express.Router();
-const db = require('../db');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const users = []; // Temporary storage; replace with DB later
 
-// ✅ Signup Route
-router.post('/signup', async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 8);
-
-    // Check if email already exists
-    const checkUser = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (checkUser.rows.length > 0) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
-
-    await db.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3)', [
-      name,
-      email,
-      hashedPassword
-    ]);
-
-    res.json({ message: 'Signup successful' });
-  } catch (err) {
-    console.error('Signup error:', err);
-    res.status(500).json({ error: 'Server error' });
+router.post("/signup", (req, res) => {
+  const { username, password } = req.body;
+  if (users.find(u => u.username === username)) {
+    return res.status(400).json({ message: "User already exists" });
   }
+  users.push({ username, password });
+  res.json({ message: "Signup successful" });
 });
 
-// ✅ Login Route
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const user = result.rows[0];
-    const isValid = bcrypt.compareSync(password, user.password);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    const token = jwt.sign({ id: user.id, name: user.name }, process.env.JWT_SECRET || 'mysecretkey', { expiresIn: '1d' });
-
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
+router.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username && u.password === password);
+  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  res.json({ message: "Login successful", user });
 });
 
 module.exports = router;
