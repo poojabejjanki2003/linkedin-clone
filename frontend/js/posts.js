@@ -8,7 +8,7 @@ if (!token || token === "null" || token === "undefined" || !user?.name) {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   alert("Please log in first!");
-  window.location.href = 'login.html';
+  window.location.href = './login.html';
 }
 
 // 🧠 Show user info on navbar
