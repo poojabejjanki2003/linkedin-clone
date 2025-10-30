@@ -3,22 +3,19 @@ const router = express.Router();
 const db = require('../db');
 const jwt = require('jsonwebtoken');
 
-// ✅ Token verification middleware
+// 🔐 Verify Token Middleware
 function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'No token provided' });
 
   jwt.verify(token, process.env.JWT_SECRET || 'mysecretkey', (err, decoded) => {
-    if (err) {
-      console.error('JWT verification failed:', err.message);
-      return res.status(403).json({ error: 'Invalid token' });
-    }
+    if (err) return res.status(403).json({ error: 'Invalid token' });
     req.user = decoded;
     next();
   });
 }
 
-// ✅ Create a new post
+// 📝 Create Post
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { content } = req.body;
@@ -36,12 +33,15 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// ✅ Get all posts
+// 📜 Get All Posts
 router.get('/', async (req, res) => {
   try {
-    const result = await db.query(
-      'SELECT posts.*, users.name FROM posts JOIN users ON posts.user_id = users.id ORDER BY posts.id DESC'
-    );
+    const result = await db.query(`
+      SELECT posts.*, users.name 
+      FROM posts 
+      JOIN users ON posts.user_id = users.id 
+      ORDER BY posts.id DESC
+    `);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching posts:', error);
