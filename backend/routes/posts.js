@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const jwt = require('jsonwebtoken');
 
-// ✅ Updated Middleware to verify token
+// ✅ Token verification middleware
 function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'No token provided' });
@@ -18,34 +18,35 @@ function verifyToken(req, res, next) {
   });
 }
 
-// ✅ Create a post
-router.post('/', verifyToken, (req, res) => {
-  const { content } = req.body;
-  const userId = req.user.id;
+// ✅ Create a new post
+router.post('/', verifyToken, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ error: 'Post content is required' });
 
-  // PostgreSQL uses $1, $2 placeholders instead of ?
-  const sql = 'INSERT INTO posts (user_id, content) VALUES ($1, $2)';
-  db.query(sql, [userId, content], (err) => {
-    if (err) {
-      console.error('Post error:', err);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ message: 'Post created successfully' });
-  });
+    const result = await db.query(
+      'INSERT INTO posts (user_id, content) VALUES ($1, $2) RETURNING *',
+      [req.user.id, content]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating post:', error);
+    res.status(500).json({ error: 'Server error while creating post' });
+  }
 });
 
-// ✅ Get all posts (feed)
-router.get('/', (req, res) => {
-  const sql = `
-    SELECT posts.*, users.name 
-    FROM posts 
-    JOIN users ON posts.user_id = users.id 
-    ORDER BY posts.created_at DESC
-  `;
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
+// ✅ Get all posts
+router.get('/', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT posts.*, users.name FROM posts JOIN users ON posts.user_id = users.id ORDER BY posts.id DESC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Server error while fetching posts' });
+  }
 });
 
 module.exports = router;
